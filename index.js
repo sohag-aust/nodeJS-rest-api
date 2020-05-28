@@ -2,7 +2,7 @@ const express = require('express')
 
 const app = express()
 
-app.listen(3000, () => {
+app.listen(4000, () => {
     console.log('Hearing from server with port 3000')
 })
 
@@ -37,10 +37,12 @@ app.get('/hello/:name', (req, res) => {
     res.send('Hello '+ name)
 })
 
+// Getting all notes
 app.get('/notes', (req, res) => {
     res.send(JSON.stringify(notes))
 })
 
+// Get individual note
 app.get('/notes/:noteId', (req, res) => {
     const noteId = parseInt(req.params.noteId)
     const note = notes.find(note => note.id === noteId)
@@ -48,7 +50,17 @@ app.get('/notes/:noteId', (req, res) => {
     if(note){
         res.send(note)
     }else{
-        res.send('Note not found !!')
+        res.status(404).send('Note not found !!')
     }
 })
+
+// Add a note
+app.use(express.json())
+
+app.post('/notes', (req, res) => {
+    const note = req.body
+    notes = [...notes, note]
+    res.send(notes)
+})
+
 

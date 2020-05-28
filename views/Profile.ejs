@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <title> ProfilePage </title>
+    </head>
+
+    <body>
+        <h1> Welcome Mr. <%= name %> </h1> 
+        <h3> Email: <%= data.email%> </h3>
+        <h3> Address: <%= data.address%> </h3>
+        <h3> Symptoms --- </h3>
+
+        <ol>
+            
+            <%
+            data.symptoms.forEach(function(symptom){ %>
+
+                <li> <%= symptom %> </li>
+
+            <% }) %>
+
+        </ol>
+
+    </body>
+</html>
