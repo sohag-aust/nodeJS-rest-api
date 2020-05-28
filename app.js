@@ -56,8 +56,23 @@ app.get('/profile/:name', function(req, res){
 
 app.get('/login2', function(req, res){ 
     res.render('Login')
+    
+    // getting query string
+    const query = req.query
+    console.log('Query String: ', query)
 })
 
 app.get('/home', function(req, res){ 
     res.render('Home')
+})
+
+
+const mongoose = require('mongoose')
+mongoose.connect('mongodb+srv://avenger:AgRojH24Pmf96j4P@cluster0-adm4t.mongodb.net/test?retryWrites=true&w=majority/tutorial',
+{
+    useNewUrlParser:true,
+    useUnifiedTopology:true
+}
+).then( () => {
+    console.log('db connection done !!!')
 })
