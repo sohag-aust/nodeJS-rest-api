@@ -25,9 +25,9 @@ router.get('/login', url, function(req, res){ // attached middleware for login r
     res.sendFile(__dirname + '/Login.html')
 })
 
-router.get('/register', url, function(req, res){ // attached middleware for register routing
-    res.send('This is my RegistrationPage !!!')
-})
+// router.get('/register', url, function(req, res){ // attached middleware for register routing
+//     res.send('This is my RegistrationPage !!!')
+// })
 
 app.get('/about', function(req, res){
     //res.send('This is my AboutPage !!!')
@@ -83,6 +83,9 @@ app.get('/home', function(req, res){
 })
 
 // connection of DB
+// mongo user: avenger
+// mongo pass: AgRojH24Pmf96j4P
+
 const mongoose = require('mongoose')
 mongoose.connect('mongodb+srv://avenger:AgRojH24Pmf96j4P@cluster0-adm4t.mongodb.net/tutorial?retryWrites=true&w=majority',
 {
@@ -196,3 +199,102 @@ app.get('/user/:name', function(req, res){
             console.log(err)
         })
 })
+
+
+// JWT authentication starts ......
+const userJWT = require('./models/userJWT')
+
+// password encryption
+const crypto = require('crypto')
+const key='password'
+const algo='aes256'
+const cipher = crypto.createCipher(algo, key)
+
+// JWT
+const jwt = require('jsonwebtoken')
+const jwtkey = 'jwt'
+
+app.post('/register', jsonParser, function(req, res){
+    const encrypted = cipher.update(req.body.password, 'utf8', 'hex') + cipher.final('hex')
+    
+    //console.log('Encrypted Password: ', encrypted)
+
+    const myData = new userJWT({
+        _id:new mongoose.Types.ObjectId,
+        name:req.body.name,
+        email:req.body.email,
+        address:req.body.address,
+        password:encrypted
+    })
+
+    myData.save().then( function(result) {
+        jwt.sign({result}, jwtkey, {expiresIn:'10h'}, function(err, token){
+            if(err) console.log(err)
+            else{
+                res.status(201).json({token})
+            }
+        })
+
+    }).catch(function(err){
+        console.log(err)
+    })
+})
+
+
+// Authentication
+app.post('/mylogin', jsonParser, function(req, res){
+    userJWT.findOne({email:req.body.email})
+        .then(function(data) {
+
+            let decipher = crypto.createDecipher(algo, key)
+            let decrypted = decipher.update(data.password, 'hex', 'utf8') + decipher.final('utf8')
+            
+            console.log('Decrypted Password: ', decrypted)
+
+            if(decrypted == req.body.password){
+
+                jwt.sign({data}, jwtkey, {expiresIn:'10h'}, function(err, token){
+                    if(err) console.log(err)
+                    else{
+                        res.status(200).json({token}) // send token as response
+                    }
+                })
+            }
+        })
+        .catch(function(err){
+            console.log(err)
+        })
+})
+
+
+// Authorization
+
+// middleware for verifying Token
+function verifyToken(req, res, next){
+    const bearerHeader = req.headers['authorization']
+
+    if(typeof bearerHeader !== 'undefined'){
+        const bearer = bearerHeader.split(' ')
+
+        req.token = bearer[1]
+
+        jwt.verify(req.token, jwtkey, function(err, authData){
+            if(err) res.send({result: err})
+            else{
+                next() // it means , if error doesn't occur then hit the url, in which this middleware interacts
+            }
+        })
+    }
+    else{
+        res.send({'result':'Token not provided'})
+    }
+}
+
+// adding middleware for authorization purposes
+app.get('/allUser', verifyToken, function(req, res){
+    User.find()
+        .then(function(result){
+            res.status(200).send(result)
+        })
+})
+
