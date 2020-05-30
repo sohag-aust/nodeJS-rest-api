@@ -7,5 +7,5 @@ const userSchema = new mongoose.Schema({ // inside schema i should set the objec
     address:String
 })
 
-module.exports = mongoose.model('users', userSchema) // (tableName, userSchema which is in top)
+module.exports = mongoose.model('users', userSchema) // (tableName:- users + '' that means users . here s is not given by mongoose bcz s is already there as users)
 
